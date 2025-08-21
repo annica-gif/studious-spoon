@@ -1,152 +1,103 @@
-:root {
-  --bg: #f5f5f5;
-  --surface: #ffffff;
-  --primary: #5b8cff;
-  --text: #333333;
-  --muted: #666666;
-  --shadow: 0 4px 12px rgba(0,0,0,.1);
+console.log("App loaded ✅");
+ 
+// Starter places
+const defaultPlaces = [
+  { name: "Vete-Katten", category: "Fika", area: "Kungsgatan", desc: "Classic Swedish pastries & cakes.", votes: 45 },
+  { name: "Café Saturnus", category: "Fika", area: "Östermalm", desc: "Famous for giant cinnamon buns.", votes: 38 },
+  { name: "Kaffebar", category: "Fika", area: "Södermalm", desc: "Cozy indie café, known from film 'Fucking Åmål'.", votes: 29 },
+ 
+  { name: "Pelikan", category: "Restaurant", area: "Södermalm", desc: "Traditional Swedish husmanskost.", votes: 50 },
+  { name: "Oaxen Slip", category: "Restaurant", area: "Djurgården", desc: "Modern Nordic cuisine in a relaxed atmosphere.", votes: 42 },
+  { name: "Växthuset", category: "Restaurant", area: "Hornstull", desc: "Creative vegan fine dining.", votes: 33 },
+  { name: "Frantzén", category: "Restaurant", area: "Norrmalm", desc: "Sweden’s only 3-star Michelin restaurant.", votes: 55 },
+  { name: "Meatballs for the People", category: "Restaurant", area: "Södermalm", desc: "Iconic Swedish meatballs with a modern twist.", votes: 47 },
+ 
+  { name: "Nystekt Strömming", category: "Street Food", area: "Slussen", desc: "Classic fried herring stand.", votes: 36 },
+  { name: "K25", category: "Street Food", area: "Kungsgatan", desc: "Food court with Asian, Mexican & more.", votes: 28 }
+];
+ 
+let places = [...defaultPlaces];
+ 
+// DOM references
+const els = {
+  grid: document.getElementById("cards"),
+  search: document.getElementById("search"),
+  cat: document.getElementById("categoryFilter"),
+  sort: document.getElementById("sortBy"),
+  addForm: document.getElementById("addForm"),
+  name: document.getElementById("placeName"),
+  category: document.getElementById("placeCategory"),
+  area: document.getElementById("placeArea"),
+  desc: document.getElementById("placeDesc")
+};
+ 
+// Render cards
+function render() {
+  console.log("Rendering list…");
+  let list = [...places];
+  const q = els.search.value.toLowerCase();
+  const cat = els.cat.value;
+  const sortBy = els.sort.value;
+ 
+  if (q) {
+    list = list.filter(x =>
+      x.name.toLowerCase().includes(q) ||
+      x.area.toLowerCase().includes(q) ||
+      x.desc.toLowerCase().includes(q)
+    );
+  }
+  if (cat !== "all") {
+    list = list.filter(x => x.category === cat);
+  }
+  if (sortBy === "name") {
+    list.sort((a, b) => a.name.localeCompare(b.name, "en"));
+  } else if (sortBy === "top") {
+    list.sort((a, b) => b.votes - a.votes);
+  }
+ 
+  els.grid.innerHTML = "";
+  const tmpl = document.getElementById("cardTemplate");
+ 
+  if (list.length === 0) {
+    els.grid.innerHTML = "<p>No results found.</p>";
+    return;
+  }
+ 
+  for (const x of list) {
+    const node = tmpl.content.cloneNode(true);
+    node.querySelector(".title").textContent = x.name;
+    node.querySelector(".area").textContent = `${x.area} · ${x.category}`;
+    node.querySelector(".desc").textContent = x.desc;
+    node.querySelector(".votes").textContent = x.votes;
+ 
+    node.querySelector(".vote-btn").addEventListener("click", () => {
+      x.votes++;
+      render();
+    });
+ 
+    els.grid.appendChild(node);
+  }
 }
  
-body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-}
+// Add form
+els.addForm.addEventListener("submit", e => {
+  e.preventDefault();
+  const newPlace = {
+    name: els.name.value,
+    category: els.category.value,
+    area: els.area.value,
+    desc: els.desc.value,
+    votes: 0
+  };
+  places.push(newPlace);
+  render();
+  els.addForm.reset();
+});
  
-.site-header {
-  text-align: center;
-  padding: 32px 20px;
-  background: var(--primary);
-  color: white;
-}
+// Event listeners
+els.search.addEventListener("input", render);
+els.cat.addEventListener("change", render);
+els.sort.addEventListener("change", render);
  
-.site-header h1 {
-  margin: 0 0 8px;
-  font-size: 2.2rem;
-}
- 
-.tagline {
-  margin: 0;
-  font-size: 1.1rem;
-  color: #e8f0ff;
-}
- 
-.controls {
-  display: flex;
-  gap: 10px;
-  max-width: 800px;
-  margin: 20px auto;
-  padding: 0 20px;
-}
- 
-.controls input, .controls select {
-  flex: 1;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-}
- 
-main {
-  max-width: 1100px;
-  margin: 20px auto;
-  padding: 0 20px;
-}
- 
-.card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 16px;
-}
- 
-.card {
-  background: var(--surface);
-  border-radius: 16px;
-  box-shadow: var(--shadow);
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
- 
-.title {
-  margin: 0;
-  font-size: 18px;
-}
- 
-.area {
-  font-size: 14px;
-  color: var(--muted);
-}
- 
-.desc {
-  font-size: 14px;
-  margin: 8px 0;
-  color: var(--muted);
-}
- 
-.rating {
-  font-weight: bold;
-  color: var(--primary);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
- 
-.vote-btn {
-  background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 4px 8px;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
- 
-.vote-btn:hover {
-  background: #4775d1;
-}
- 
-.add-form {
-  max-width: 600px;
-  margin: 40px auto;
-  padding: 20px;
-  background: var(--surface);
-  border-radius: 16px;
-  box-shadow: var(--shadow);
-}
- 
-.add-form h2 {
-  margin-top: 0;
-}
- 
-.add-form label {
-  display: block;
-  margin: 10px 0;
-}
- 
-.add-form input, .add-form textarea, .add-form select {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-}
- 
-.btn.primary {
-  background: var(--primary);
-  border: none;
-  color: white;
-  padding: 10px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-}
- 
-.btn.primary:hover {
-  background: #4775d1;
-}
- 
-.site-footer {
-  text-align: center;
-  margin: 40px 0;
-  color: var(--muted);
-}
+// Run after DOM loaded
+window.addEventListener("DOMContentLoaded", render);
